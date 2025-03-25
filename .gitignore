@@ -1,0 +1,53 @@
+# Python-specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Sensitive data
+data/arabic_news.csv  # Your input CSV with news data
+data/new/processed_data.csv  # Processed CSV output
+*.csv  # All CSVs (if you want to ignore all)
+
+# Model files
+models/arabert_fake_news/  # Trained model directory
+*.bin  # Model weights
+*.pt   # PyTorch model files
+*.pth  # PyTorch checkpoints
+
+# Logs and temporary files
+logs/
+*.log
+*.tmp
+*.cache
+
+# Environment and credentials
+.env  # Environment variables (if you use one)
+*.key
+*.pem
+credentials.json
+
+# IDE-specific
+.vscode/
+.idea/
+*.swp
+
+# OS-specific
+.DS_Store  # macOS
+Thumbs.db  # Windows
+
+# Hugging Face cache (optional, if disk space is a concern)
+*.cache/
+
+
+*.env
+
+
+test.py
+models/
