@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import Tesseract from "tesseract.js";
+import ModeSelector from "./components/ModeSelector";
+import TextInput from "./components/TextInput";
+import ImageInput from "./components/ImageInput";
+import UrlInput from "./components/UrlInput";
+import VoiceInput from "./components/VoiceInput";
+import AnalyzeButton from "./components/AnalyzeButton";
+import Feedback from "./components/Feedback";
 import "./App.css";
 
 function App() {
@@ -8,23 +15,22 @@ function App() {
   const [mode, setMode] = useState("text");
 
   // Input states
-  const [text, setText] = useState(""); // Text mode
-  const [url, setUrl] = useState(""); // URL mode
-  const [image, setImage] = useState(null); // Image mode
-  const [extracting, setExtracting] = useState(false); // Image extraction status
-  const [extractedText, setExtractedText] = useState(""); // Extracted text from image
-  const [voiceText, setVoiceText] = useState(""); // Voice mode
-  const [recording, setRecording] = useState(false); // Voice recording status
+  const [text, setText] = useState("");
+  const [url, setUrl] = useState("");
+  const [image, setImage] = useState(null);
+  const [extracting, setExtracting] = useState(false);
+  const [extractedText, setExtractedText] = useState("");
+  const [voiceText, setVoiceText] = useState("");
+  const [recording, setRecording] = useState(false);
 
   // Result and feedback states
   const [result, setResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Refs for voice recognition and image input
+  // Refs for voice recognition
   const recognitionRef = useRef(null);
   const timeoutRef = useRef(null);
-  const inputRef = useRef(null); // For image input
 
   // Initialize SpeechRecognition
   useEffect(() => {
@@ -37,7 +43,7 @@ function App() {
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         setVoiceText(transcript);
-        if (!isLoading) handleSubmit(transcript); // Auto-send after recording
+        if (!isLoading) handleSubmit(transcript); // Auto-submit after recording
       };
       recognitionRef.current.onend = () => {
         setRecording(false);
@@ -68,24 +74,16 @@ function App() {
       }
     };
 
-    document.addEventListener("paste", handlePaste);
+    if (mode === "image") {
+      document.addEventListener("paste", handlePaste);
+    }
+
     return () => {
       document.removeEventListener("paste", handlePaste);
     };
   }, [mode, extracting]);
 
-  // Image handling
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    processImage(file);
-  };
-
-  const handleImageDrop = (e) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    processImage(file);
-  };
-
+  // Image processing
   const processImage = (file) => {
     if (file && !extracting) {
       setImage(file);
@@ -128,7 +126,7 @@ function App() {
         textToSend = extractedText;
         break;
       case "voice":
-        textToSend = overrideText || voiceText; // Use override for auto-send
+        textToSend = overrideText || voiceText;
         break;
       default:
         textToSend = "";
@@ -168,141 +166,43 @@ function App() {
     <div className="container">
       <h1 className="title">Fake News Detector (Arabic)</h1>
 
-      {/* Mode Selection */}
-      <div className="mode-selection">
-        <button
-          onClick={() => setMode("text")}
-          className={mode === "text" ? "active" : ""}
-        >
-          Text
-        </button>
-        <button
-          onClick={() => setMode("image")}
-          className={mode === "image" ? "active" : ""}
-        >
-          Image
-        </button>
-        <button
-          onClick={() => setMode("url")}
-          className={mode === "url" ? "active" : ""}
-        >
-          URL
-        </button>
-        <button
-          onClick={() => setMode("voice")}
-          className={mode === "voice" ? "active" : ""}
-        >
-          Voice
-        </button>
-      </div>
+      <ModeSelector currentMode={mode} setMode={setMode} />
 
-      {/* Input Area */}
       <div className="input-container">
         {mode === "text" && (
-          <textarea
-            className="textarea"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Enter Arabic text here..."
-            disabled={isLoading}
-          />
+          <TextInput text={text} setText={setText} isLoading={isLoading} />
         )}
         {mode === "image" && (
-          <div
-            className="image-drop-area"
-            onDrop={handleImageDrop}
-            onDragOver={(e) => e.preventDefault()}
-          >
-            {!image ? (
-              <>
-                <p>Drop image here, click to select, or paste with Ctrl+V</p>
-                <label htmlFor="image-input" className="select-button">
-                  Select Image
-                </label>
-              </>
-            ) : (
-              <div className="image-result">
-                <img
-                  src={URL.createObjectURL(image)}
-                  alt="Preview"
-                  className="image-preview"
-                />
-                {extracting ? (
-                  <p>Extracting text...</p>
-                ) : (
-                  <p className="extracted-text">Extracted: {extractedText}</p>
-                )}
-                <button onClick={() => inputRef.current.click()}>
-                  Change Image
-                </button>
-              </div>
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              style={{ display: "none" }}
-              id="image-input"
-              ref={inputRef}
-              disabled={isLoading || extracting}
-            />
-          </div>
-        )}
-        {mode === "url" && (
-          <input
-            type="text"
-            className="url-input"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="Enter URL here..."
-            disabled={isLoading}
+          <ImageInput
+            image={image}
+            setImage={setImage}
+            extracting={extracting}
+            setExtracting={setExtracting}
+            extractedText={extractedText}
+            setExtractedText={setExtractedText}
+            isLoading={isLoading}
+            processImage={processImage}
+            setError={setError}
           />
         )}
+        {mode === "url" && (
+          <UrlInput url={url} setUrl={setUrl} isLoading={isLoading} />
+        )}
         {mode === "voice" && (
-          <div className="voice-input">
-            <button
-              className="button"
-              onClick={handleVoiceRecording}
-              disabled={recording || isLoading}
-            >
-              {recording ? "Recording..." : "Record Voice (10s max)"}
-            </button>
-            {voiceText && (
-              <p className="transcribed-text">Transcribed: {voiceText}</p>
-            )}
-          </div>
+          <VoiceInput
+            voiceText={voiceText}
+            recording={recording}
+            handleVoiceRecording={handleVoiceRecording}
+            isLoading={isLoading}
+          />
         )}
       </div>
 
-      {/* Analyze Button (hidden for voice mode as it auto-sends) */}
       {mode !== "voice" && (
-        <button
-          className="button"
-          onClick={() => handleSubmit()}
-          disabled={isLoading}
-        >
-          {isLoading ? "Analyzing..." : "Analyze"}
-        </button>
+        <AnalyzeButton isLoading={isLoading} handleSubmit={handleSubmit} />
       )}
 
-      {/* Feedback */}
-      {isLoading && (
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Processing your request...</p>
-        </div>
-      )}
-      {error && !isLoading && (
-        <div className="error-container">
-          <p className="error-text">{error}</p>
-        </div>
-      )}
-      {result && !isLoading && !error && (
-        <div className="result">
-          <p className="result-text">Prediction: {result.prediction}</p>
-          <p className="result-text">Source Check: {result.source_check}</p>
-        </div>
-      )}
+      <Feedback isLoading={isLoading} error={error} result={result} />
     </div>
   );
 }

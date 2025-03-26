@@ -1,0 +1,9 @@
+.voice-input {
+  text-align: center;
+}
+
+.transcribed-text {
+  margin-top: 15px;
+  font-size: 1rem;
+  color: #333;
+}
