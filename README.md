@@ -1,6 +1,8 @@
-## Installation 
+## Installation
 
 ```
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
@@ -22,8 +24,27 @@ During installation:
 Add `C:\Program Files\Tesseract-OCR` to path
 
 ### Run the App
+
 ```
+python run.py
+```
+
+or for debugging
+
+```
+cd backend
 python app.py
-cd frontend
-npm start dev
+```
+
+in another terminal
+
+```
+cd frontend/
+npm run dev
+```
+
+### Scrapping news
+
+```
+python ./scrapping/run.py
 ```
